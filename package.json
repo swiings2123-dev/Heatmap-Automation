@@ -1,0 +1,61 @@
+{
+  "name": "shopify-heatmap",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted, local-first click & scroll heatmaps for Shopify product pages.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run build:tracker && npm run build:dashboard && tsx watch --clear-screen=false --ignore ./data --ignore ./dashboard server/src/index.ts",
+    "dev:ui": "vite --config dashboard/vite.config.ts",
+    "demo": "npm run build:tracker && npm run build:dashboard && cross-env DEMO=1 tsx server/src/index.ts",
+    "start": "tsx server/src/index.ts",
+    "build": "npm run typecheck && npm run build:tracker && npm run build:dashboard",
+    "build:tracker": "tsx scripts/build-tracker.ts",
+    "build:dashboard": "vite build --config dashboard/vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint server tracker dashboard/src shared scripts tests e2e",
+    "test": "vitest run",
+    "test:e2e": "npm run build:tracker && playwright test",
+    "capture": "tsx server/src/worker/cli.ts capture",
+    "capture:all": "tsx server/src/worker/cli.ts capture-all",
+    "watch": "tsx server/src/worker/cli.ts watch"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.4.3",
+    "@fastify/rate-limit": "^11.2.2",
+    "@fastify/static": "^10.1.11",
+    "better-sqlite3": "^13.2.0",
+    "cross-env": "^10.1.0",
+    "fastify": "^5.12.8",
+    "playwright": "^1.65.1",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^31.0.1",
+    "oxlint": "^1.93.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.10.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.2.0": true,
+    "esbuild@0.28.2": true
+  }
+}

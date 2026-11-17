@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+/* ───────────────────────── Thermal Vision ─────────────────────────
+   An infrared-scanner look: glowing thermal gradients, glass panels,
+   a soft aurora glow behind everything. Light + dark share one token set. */
+
+@theme {
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-rage: var(--rage);
+  --color-dead: var(--dead);
+  --color-good: var(--good);
+  --font-display: "Unbounded", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root {
+  --thermal: linear-gradient(90deg, #2b59ff, #00c8ff 22%, #8dff4f 45%, #ffd23d 62%, #ff7a1a 80%, #ff1f6b);
+  --hot: linear-gradient(120deg, #ff1f6b, #ff7a1a 55%, #ffd23d);
+}
+
+/* Light: "lab paper" with soft heat bloom */
+:root {
+  color-scheme: light;
+  --bg: #f5f2ec;
+  --surface: #ece8e0;
+  --panel: rgb(255 255 255 / 0.88);
+  --panel-solid: #ffffff;
+  --line: rgb(30 20 10 / 0.11);
+  --line-strong: rgb(30 20 10 / 0.2);
+  --ink: #15110d;
+  --ink-2: #514a42;
+  --ink-3: #847b70;
+  --accent: #e8590c;
+  --accent-soft: #ffd9bf;
+  --rage: #e0144f;
+  --dead: #6d3fe0;
+  --good: #2f8a00;
+  --glow: 0 10px 40px -12px rgb(232 89 12 / 0.35);
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 12px 32px -18px rgb(60 30 0 / 0.35);
+  --aurora-a: rgb(255 122 26 / 0.28);
+  --aurora-b: rgb(255 31 107 / 0.16);
+  --aurora-c: rgb(0 200 255 / 0.18);
+  --dots: rgb(30 20 10 / 0.07);
+}
+
+/* Dark: night-vision command center */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #06060b;
+    --surface: #0f0f18;
+    --panel: rgb(18 18 29 / 0.88);
+    --panel-solid: #12121c;
+    --line: rgb(255 255 255 / 0.08);
+    --line-strong: rgb(255 255 255 / 0.16);
+    --ink: #f4f1ff;
+    --ink-2: #b9b5cc;
+    --ink-3: #7e7a94;
+    --accent: #ff7a1a;
+    --accent-soft: #5a2410;
+    --rage: #ff3d7a;
+    --dead: #a78bfa;
+    --good: #a6ff4d;
+    --glow: 0 10px 50px -10px rgb(255 122 26 / 0.45);
+    --shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 20px 50px -24px rgb(0 0 0 / 0.9);
+    --aurora-a: rgb(255 90 20 / 0.22);
+    --aurora-b: rgb(255 31 107 / 0.2);
+    --aurora-c: rgb(43 89 255 / 0.28);
+    --dots: rgb(255 255 255 / 0.05);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #06060b;
+  --surface: #0f0f18;
+  --panel: rgb(18 18 29 / 0.88);
+  --panel-solid: #12121c;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.16);
+  --ink: #f4f1ff;
+  --ink-2: #b9b5cc;
+  --ink-3: #7e7a94;
+  --accent: #ff7a1a;
+  --accent-soft: #5a2410;
+  --rage: #ff3d7a;
+  --dead: #a78bfa;
+  --good: #a6ff4d;
+  --glow: 0 10px 50px -10px rgb(255 122 26 / 0.45);
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 20px 50px -24px rgb(0 0 0 / 0.9);
+  --aurora-a: rgb(255 90 20 / 0.22);
+  --aurora-b: rgb(255 31 107 / 0.2);
+  --aurora-c: rgb(43 89 255 / 0.28);
+  --dots: rgb(255 255 255 / 0.05);
+}
+
+html {
+  background: var(--bg);
+  overflow-x: clip;
+  transition: background-color 0.4s ease;
+}
+/* No body background: it would paint over the fixed aurora layers below. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: color 0.4s ease;
+}
+
+/* Aurora + dot grid + grain, fixed behind everything.
+   Perf: deliberately static. An animated full-screen background forces every frame to
+   repaint (and re-blur anything translucent above it), which made hover/clicks laggy. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 30vmax at 12% 8%, var(--aurora-a), transparent 70%),
+    radial-gradient(34vmax 28vmax at 88% 18%, var(--aurora-b), transparent 70%),
+    radial-gradient(40vmax 32vmax at 60% 100%, var(--aurora-c), transparent 70%);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(var(--dots) 1px, transparent 1.2px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+  background-size: 22px 22px, 160px 160px;
+  mask-image: linear-gradient(to bottom, black, transparent 140%);
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Component classes live in a cascade layer so Tailwind utilities (e.g. `absolute` on the tooltip) always win. */
+@layer components {
+/* Glass panel with a gradient hairline that heats up on hover */
+.glass {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  /* No backdrop-filter: blurring behind every card is costly on each repaint. Panels are opaque enough. */
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--hot);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.glass:hover::before { opacity: 0.55; }
+
+/* Viewfinder corner brackets */
+.hud { --c: var(--accent); }
+.hud > .hud-corners,
+.hud > .hud-corners::before,
+.hud > .hud-corners::after { pointer-events: none; }
+.hud-corners {
+  position: absolute;
+  inset: 6px;
+  border-radius: 14px;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 18px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px 18px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 18px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px 18px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 18px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px 18px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 18px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px 18px no-repeat;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.text-thermal {
+  background: var(--hot);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bg-thermal { background: var(--thermal); }
+.bg-hot { background: var(--hot); }
+}
+
+/* Spinning thermal orb (logo) */
+.orb {
+  background: conic-gradient(from 0deg, #2b59ff, #00c8ff, #8dff4f, #ffd23d, #ff7a1a, #ff1f6b, #2b59ff);
+  animation: spin 6s linear infinite;
+  box-shadow: 0 0 22px -2px rgb(255 122 26 / 0.7);
+}
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  background: var(--bg);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Live pulse */
+.pulse-dot { position: relative; }
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: inherit;
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+
+/* Thermal shimmer skeleton */
+.skeleton {
+  background:
+    linear-gradient(100deg, transparent 20%, rgb(255 122 26 / 0.14) 40%, rgb(0 200 255 / 0.12) 55%, transparent 75%) 0 0 / 250% 100%,
+    var(--surface);
+  animation: shimmer 1.8s linear infinite;
+}
+@keyframes shimmer { to { background-position: -250% 0; } }
+
+/* Scan line: sweeps the heatmap stage once when it appears (not looped, to keep interaction smooth) */
+.scanline {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 42%, rgb(255 122 26 / 0.12) 50%, transparent 58%);
+  animation: scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1 both;
+  pointer-events: none;
+}
+@keyframes scan {
+  from { transform: translate3d(0, -60%, 0); opacity: 1; }
+  80% { opacity: 1; }
+  to { transform: translate3d(0, 60%, 0); opacity: 0; }
+}
+
+/* Switch-style checkbox (keeps a real input for a11y) */
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 30px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--ink-3);
+  transition: transform 0.25s cubic-bezier(0.5, 1.6, 0.4, 0.8), background 0.25s ease;
+}
+.switch:checked {
+  background: var(--hot);
+  border-color: transparent;
+  box-shadow: 0 0 14px -2px rgb(255 122 26 / 0.7);
+}
+.switch:checked::after { transform: translateX(12px); background: #fff; }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23ff7a1a' stroke-width='1.6'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px !important;
+}
+select option { background: var(--panel-solid); color: var(--ink); }
+
+::selection { background: rgb(255 122 26 / 0.35); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); background-clip: content-box; }
+
+/* `backwards`, not `both`: once finished it leaves no transform behind (no stray stacking context). */
+.rise { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,14 @@
+node_modules
+data
+data-*
+dist
+dashboard/dist
+.env
+.env.*
+!.env.example
+test-results
+playwright-report
+*.log
+*.cmd
+.git
+.vscode

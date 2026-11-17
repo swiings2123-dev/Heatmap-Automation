@@ -1,0 +1,25 @@
+# Render Blueprint for the heatmap service.
+# Secrets (DASHBOARD_TOKEN) and per-deploy values are set in the Render dashboard, not here.
+services:
+  - type: web
+    name: shopify-heatmap
+    runtime: docker
+    region: singapore
+    plan: standard # 2 GB RAM: Chromium screenshots need it (512 MB starter can run out of memory)
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    disk:
+      name: heatmap-data
+      mountPath: /var/data # SQLite database + screenshots live here
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DASHBOARD_TOKEN
+        sync: false # set in the dashboard
+      - key: PUBLIC_URL
+        sync: false # https://<service>.onrender.com (or your custom domain)
+      - key: ALLOWED_ORIGINS
+        value: https://www.anvyra.in,https://anvyra.in,https://www.wishluck.in,https://wishluck.in
+      - key: COLLECT_RATE_LIMIT
+        value: "120"
