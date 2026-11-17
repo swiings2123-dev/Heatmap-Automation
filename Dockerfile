@@ -1,13 +1,17 @@
 # Heatmap collector + dashboard, with Chromium for page screenshots.
-# The Playwright base image ships the browser + system libs; its tag MUST match
-# the "playwright" version in package-lock.json (currently 1.65.1).
-FROM mcr.microsoft.com/playwright:v1.65.1-noble
+# Node 24 on purpose: same as local dev, and better-sqlite3 ships prebuilt binaries for it
+# (the Playwright base image moved to Node 26, where better-sqlite3 has to compile and fails).
+FROM node:24-bookworm-slim
 
 WORKDIR /app
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Dev deps are needed to build the dashboard/tracker (vite, tailwind, typescript).
 COPY package.json package-lock.json ./
 RUN npm ci --include=dev
+
+# Chromium + its system libraries, at the exact version the installed playwright package expects.
+RUN npx playwright install --with-deps chromium && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 RUN npm run build
