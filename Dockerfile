@@ -1,10 +1,12 @@
 # Heatmap collector + dashboard, with Chromium for page screenshots.
-# Node 24 on purpose: same as local dev, and better-sqlite3 ships prebuilt binaries for it
-# (the Playwright base image moved to Node 26, where better-sqlite3 has to compile and fails).
+# Node 24 on purpose: same as local dev.
 FROM node:24-bookworm-slim
 
 WORKDIR /app
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Toolchain for native modules (better-sqlite3 compiles from source when no prebuilt binary matches).
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Dev deps are needed to build the dashboard/tracker (vite, tailwind, typescript).
 COPY package.json package-lock.json ./
