@@ -16,6 +16,7 @@ import { parseBatch } from "./lib/validate";
 import type { ClickKind, EventFilter, ScreenshotRow, Storage } from "./storage/types";
 import { PROFILES } from "./worker/capture";
 import type { CaptureRunner } from "./worker/runner";
+import { registerExport } from "./exporter";
 
 export interface AppDeps {
   cfg: Config;
@@ -96,6 +97,9 @@ export async function buildApp({ cfg, storage, runner, logger }: AppDeps) {
   const devOnly = async (_req: FastifyRequest, reply: FastifyReply) => {
     if (cfg.production) return reply.code(404).send({ error: "not found" });
   };
+
+  // TEMPORARY one-time data export (see exporter.ts).
+  if (cfg.production) await registerExport(app, cfg, requireAuth);
 
   // ------------------------------------------------------------------ public
   app.get("/api/health", async () => ({ ok: true, time: Date.now(), mode: cfg.production ? "production" : "development" }));
